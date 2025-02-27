@@ -102,4 +102,5 @@ if __name__ == '__main__':
     print(tree.find_max_depth())
     tree.execute_on_depth(-1, lambda node: print(str(node)))
     print("======================================")
-    print(tree.find_first_node_at_depth(depth=-1))
+    print(tree.find_first_node_at_depth(depth=-1).siblings_count)
+    print(tree.find_first_node_at_depth(depth=-1).next_sibling.siblings_count)

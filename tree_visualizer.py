@@ -105,8 +105,7 @@ class TreeVizualizer:
           self.print_tree(child, prefix, is_last_child)
 
   def execute_on_depth(self, depth: int = -1, callback: Optional[Callable[["TreeNode"], None]] = None):
-      if depth == -1: depth = self.find_max_depth(self.root)
-      node = self.find_first_node_at_depth(self.root, depth)
+      node = self.find_first_node_at_depth(depth=depth, node=self.root)
       while node.prev_sibling: node = node.prev_sibling
 
       while node:
@@ -118,10 +117,11 @@ class TreeVizualizer:
       if not node.children: return max(current_max, node.depth)
       return max([self.find_max_depth(child, current_max) for child in node.children])
 
-  def find_first_node_at_depth(self, node: Optional["TreeNode"] = None, depth: int = 0) -> Optional["TreeNode"]:
+  def find_first_node_at_depth(self, depth: int = -1, node: Optional["TreeNode"] = None) -> Optional["TreeNode"]:
       if node is None: node = self.root
+      if depth == -1: depth = self.find_max_depth(self.root)
       if node.depth == depth: return node
       
       for child in node.children:
-          found_node = self.find_first_node_at_depth(child, depth)
+          found_node = self.find_first_node_at_depth(depth, child)
           if found_node: return found_node

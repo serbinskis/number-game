@@ -100,4 +100,6 @@ if __name__ == '__main__':
     tree.root.generate_children(divisors=[2,3,4], recursive=True)
     tree.print_tree()
     print(tree.find_max_depth())
-    print(tree.execute_on_depth(-1, lambda node: print(str(node))))
+    tree.execute_on_depth(-1, lambda node: print(str(node)))
+    print("======================================")
+    print(tree.find_first_node_at_depth(depth=-1))

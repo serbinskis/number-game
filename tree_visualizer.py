@@ -3,7 +3,8 @@ class TreeNode:
     self.text = text
     self.parent = parent
     self.children = []
-    self.sibling = None #Sigling is next node in the same depth
+    self.next_sibling = None #Sigling is next node in the same depth
+    self.prev_sibling = None #Sigling is previous node in the same depth
     self.width = -1 #Calculate based on text width
     self.height = -1 #Calculate based on text height
     self.position = [-1, -1] #Calculate based on depth and depth_count + width and height
@@ -13,6 +14,8 @@ class TreeNode:
   def add_children(self, child_node):
     self.children.append(child_node)
     if (child_node.parent = None): child_node.parent = self
+    #Better calculate depth, depth_count, next_sibling and prev_sibling here
+    #Rembember to update all nodes on the same depth, thats why we have next_sibling and prev_sibling
 
 class TreeVizualizer:
   def __init__(self, root):

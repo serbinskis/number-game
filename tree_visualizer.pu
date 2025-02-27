@@ -1,0 +1,33 @@
+class TreeNode:
+  def __init__(self, text, parent=None):
+    self.text = text
+    self.parent = parent
+    self.children = []
+    self.width = -1;
+    self.height = -1;
+    self.poistion = [-1, -1]
+    self.depth = -1;
+    self.depth_count = -1;
+
+  def add_children(self, child_node):
+    self.children.append(child_node)
+    if (child_node.parent = None): child_node.parent = self
+
+class TreeVizualizer:
+  def __init__(self, root):
+    self.root = root
+
+  def start(self):
+    #Begin new thread and render tree each frame
+    #In new thread we create window and call fucntion which will
+    #Each node position and then render it
+
+  def stop(self):
+    pass
+
+  def update(self):
+    pass
+
+  def render(self):
+    pass
+    

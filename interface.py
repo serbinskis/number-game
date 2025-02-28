@@ -129,7 +129,7 @@ class GameInterface:
         button_width = 180
         button_height = 40
         button_spacing = 20
-        start_y = (window_height // 2)
+        start_y = (window_height // 3)
 
         for i, algo in enumerate(GameAI.algorithms.keys()):
             button = Button(self.window, text=algo, font=("Arial", 14), command=lambda a=algo: self.start_game(current_player, current_number, a))
@@ -231,6 +231,7 @@ class GameInterface:
         if (not self.game or not self.game.started): return
         if (event.keysym == "space"): self.paused = not self.paused
         if (event.keysym == "Return"): self.tree.set_selected(self.game.get_current_move())
+        #if (event.keysym == "BackSpace"): self.tree.selected_node.remove_children()
         self.tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
 
     def start_game(self, current_player: int, current_number: int, algorithm: str):
@@ -253,4 +254,3 @@ class GameInterface:
 
 if __name__ == '__main__':
     GameInterface(1200, 600).start()
-    #tree.root.generate_children(divisors=[2,3,4], recursive=True)

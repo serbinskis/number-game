@@ -213,11 +213,14 @@ class TreeNode:
   
   def remove_children(self):
     for children in self.children: children.remove_children()
+
     for child in self.children:
-        if child.next_sibling:
-            child.next_sibling.prev_sibling = None
-        if child.prev_sibling:
-            child.prev_sibling.next_sibling = None
+        if child.next_sibling: child.next_sibling.prev_sibling = child.prev_sibling
+        if child.prev_sibling: child.prev_sibling.next_sibling = child.next_sibling
+        sibling = child.next_sibling or child.prev_sibling
+        if (sibling): sibling.__update_siblings_count()
+        if (sibling): sibling.__update_position()
+
     self.children = []
   
   def is_leaf(self):

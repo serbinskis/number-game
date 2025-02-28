@@ -2,7 +2,7 @@ import copy
 import random
 from tkinter import *
 from typing import List, Optional, Callable, Sequence, cast
-from tkinter import Canvas, PhotoImage
+from tkinter import Canvas
 from PIL import Image, ImageDraw, ImageTk, ImageFont
 
 class Picaso:
@@ -306,7 +306,7 @@ class TreeNode:
     self.__execute_on_siblings(lambda node: setattr(node, 'total_width', self.total_width)) # Set other sibling's total_width
     self.__execute_on_siblings(lambda node: setattr(node, 'max_height', self.max_height)) # Set other sibling's max_height
 
-    position_y = self.parent.position[1] + (self.parent.max_height // 2) + (self._shared_marging_height * (self.depth/2)) + (self.max_height // 2) # All nodes on same depth share same y position, which is center of max_height
+    position_y = self.parent.position[1] + (self.parent.max_height // 2) + (self._shared_marging_height) + (self.max_height // 2) # All nodes on same depth share same y position, which is center of max_height
     sibling = self.__get_first_sibling()
     sibling.position[0] = (self.width // 2) - (self.total_width // 2)
 

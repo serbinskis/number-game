@@ -1,5 +1,6 @@
 import random
-from tree_visualizer import TreeNode, TreeVizualizer
+from game_ai import GameAI
+from tree_visualizer import TreeNode
 from tkinter import *
 
 class GameStateNode(TreeNode):
@@ -13,12 +14,13 @@ class GameStateNode(TreeNode):
         super().__init__(str(self))
     
     def __str__(self):
-        return f'[SCORE: {self.current_number}]\n[BANK: {self.bank_score}]\n[DIV: {self.divisor_number}]\n[P1: {self.player_1_score}] [P2: {self.player_2_score}]'
+        return f'SCORE: {self.current_number}\nDIVISOR: {self.divisor_number}\nBANK: {self.bank_score}\nPLAYER SCORE: {self.player_1_score}\nCOMPUTER SCORE: {self.player_2_score}\n'
 
     def get_fill_color(self):
         if self.is_selected(): return "#ffcc00"
-        if self.current_player == 1: return "#00ff00"
-        if self.current_player == 2: return "#ff0000"
+        if self.parent is None: return self.fill_color
+        if self.current_player == 2: return "#00ff00" # Yes they are flipped
+        if self.current_player == 1: return "#ff0000" # The current_player, state of who is playing now
         return self.fill_color
 
     def generate_children(self, divisors=[2, 3, 4], recursive=False):
@@ -40,8 +42,16 @@ class GameStateNode(TreeNode):
                         new_score2 += 1
 
                 # Bank points condition
-                if new_value % 10 == 0 or new_value % 10 == 5:
-                    new_bank += 1
+                if (new_value % 10 == 0 or new_value % 10 == 5): new_bank += 1
+                is_game_over = (new_value <= 10) or not any(new_value % d == 0 for d in [2, 3, 4])
+
+                if is_game_over:
+                    # Add bank points to the current player's score
+                    if self.current_player == 1:
+                        new_score1 += new_bank
+                    else:
+                        new_score2 += new_bank
+                    new_bank = 0  # Reset the bank as it has been claimed
 
                 # Create child node with updated values and switch player
                 child_node = GameStateNode(new_value, divisor, (2 if self.current_player == 1 else 1), new_score1, new_score2, new_bank)
@@ -54,6 +64,7 @@ class NumberGame:
         """Initialize the game with a random valid starting number."""
         self.started = False
         self.finished = False
+        self.ai = GameAI(self)
 
     def generate_valid_numbers(count=5, lower=20000, upper=30000):
         """Generate a list of unique numbers divisible by 2, 3, and 4 within a range."""
@@ -75,12 +86,24 @@ class NumberGame:
         if self.is_finished() or not self.started: return False
         self.current_move.generate_children(divisors=[selected_number])
         self.current_move = self.current_move.children[0]
-    
+
     def get_current_move(self):
         return self.current_move
 
+    def get_current_player(self):
+        return self.get_current_move().current_player
+
     def get_current_number(self):
-        return self.current_move.current_number
+        return self.get_current_move().current_number
+    
+    def set_algorithm(self, algorithm: str):
+        self.ai.set_algorithm(algorithm)
+    
+    def ai_next_move(self):
+        current_move = self.current_move
+        next_move = self.ai.next_move()
+        self.current_move = current_move
+        self.next_move(next_move)
     
     def is_finished(self):
         if self.finished: return True

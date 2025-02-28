@@ -14,7 +14,7 @@ class GameStateNode(TreeNode):
         super().__init__(str(self))
     
     def __str__(self):
-        return f'SCORE: {self.current_number}\nDIVISOR: {self.divisor_number}\nBANK: {self.bank_score}\nCOMPUTER SCORE: {self.player_2_score}\nPLAYER SCORE: {self.player_1_score}\n'
+        return f'SCORE: {self.current_number}\nDIVISOR: {self.divisor_number}\nBANK: {self.bank_score}\nCOMPUTER SCORE: {self.player_2_score}\nPLAYER SCORE: {self.player_1_score}\n\n\n'
 
     def get_fill_color(self):
         if self.is_selected(): return "#ffcc00"
@@ -91,7 +91,7 @@ class NumberGame:
         if self.is_finished() or not self.started: return False
         for child in self.current_move.children:
             if child.divisor_number == selected_number: self.current_move = child
-        self.current_move.children = [] #TODO: Fix this, it is very broken, implement actuall method to remove children
+        self.current_move.remove_children()
 
     def get_current_move(self):
         return self.current_move

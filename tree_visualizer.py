@@ -211,6 +211,15 @@ class TreeNode:
     child_node.__update_siblings_count()
     child_node.__update_position()
   
+  def remove_children(self):
+    for children in self.children: children.remove_children()
+    for child in self.children:
+        if child.next_sibling:
+            child.next_sibling.prev_sibling = None
+        if child.prev_sibling:
+            child.prev_sibling.next_sibling = None
+    self.children = []
+  
   def is_leaf(self):
     return len(self.children) == 0
 
@@ -227,6 +236,10 @@ class TreeNode:
 
   def set_selected(self, selected):
     self.selected = selected
+  
+  def add_extra_text(self, text: str):
+     self.image = None
+     self.text = text + self.text.rstrip()
 
   def draw_link(self, canvas: Canvas, parent: "TreeNode", x: int, y: int):
     y0 = parent.position[1] + (parent.max_height // 2) + y # Calculate the coordinates for the start point
@@ -292,7 +305,7 @@ class TreeNode:
 # https://prnt.sc/uitUZvEqKlqt
   def __update_dimensions(self):
     lines = self.text.split("\n")
-    self.height += 20
+    self.height = 20
 
     for line in lines:
       bbox = self._shared_font.getbbox(line)

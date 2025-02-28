@@ -2,7 +2,7 @@ import math
 import random
 import sys
 import time
-from typing import Optional
+from typing import Optional, Tuple
 import game as game
 from tree_visualizer import TreeNode
 
@@ -43,27 +43,31 @@ class GameAI:
         current_move.generate_children()
         return random.choice(current_move.children).divisor_number if current_move.children else None
 
-    #TODO: Fix -> https://prnt.sc/sbo5Y-FNTE_z
+    #TODO: Fix (I THINK ITS FIXED) -> https://prnt.sc/sbo5Y-FNTE_z
     def _minimax_algorithm(self) -> int:
         def _minimax_score(node: "TreeNode"):
             is_game_over = (node.current_number <= 10) or not any(node.current_number % d == 0 for d in [2, 3, 4])
-            if (is_game_over and (node.current_player == 1)): return -sys.maxsize
+            if (is_game_over and (node.current_player == 2)): return -sys.maxsize
             return node.player_2_score
 
-        def _minimax_helper(node: Optional["TreeNode"] = None, depth: int = 0) -> Optional["TreeNode"]:
-            while (self.ui.rendering): time.sleep(0.0001)
-            self.ui.tree.set_selected(node)
-            time.sleep(2.000)
-            while (self.ui.paused): time.sleep(0.0001)
+        def _minimax_helper(node: Optional["TreeNode"] = None, depth: int = 0) -> Tuple["TreeNode", int]:
+            while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while renderinbuuy7gyg
+            self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
+            time.sleep(0.300) # Sleep for some time, so that renderer in main thread visualizes tree
+            while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
 
-            if (depth >= self.max_depth): return node
+            if (depth >= self.max_depth): return node, _minimax_score(node)
             node.generate_children()
-            if (not node.children): return node
-            best_node = max(node.children, key=lambda child: _minimax_score(_minimax_helper(child, depth + 1)), default=None)
-            best_node.text = f" [BEST HIT ({_minimax_score(best_node)})]\n" + best_node.text
-            return best_node
+            if (not node.children): return node, _minimax_score(node)
 
-        best_node = _minimax_helper(self.game.get_current_move()) #best_node is one of the children, we must either remove it or set current move to it
+            children_scores = [(child, _minimax_helper(child, depth + 1)[1]) for child in node.children]
+            best_node, best_score = max(children_scores, key=lambda x: x[1])
+            [child.add_extra_text(f" [HIT ({score})]\n") for child, score in children_scores]
+            best_node.add_extra_text("BEST | ")
+            return best_node, best_score
+
+        #best_node is one of the children, we must either remove it or set current move to it
+        best_node, _ = _minimax_helper(self.game.get_current_move())
         return best_node.divisor_number
 
     def _alpha_beta_algorithm(self):

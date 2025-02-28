@@ -230,6 +230,7 @@ class GameInterface:
     def on_key_press(self, event):
         if (not self.game or not self.game.started): return
         if (event.keysym == "space"): self.paused = not self.paused
+        if (event.keysym == "Return"): self.tree.set_selected(self.game.get_current_move())
         self.tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
 
     def start_game(self, current_player: int, current_number: int, algorithm: str):

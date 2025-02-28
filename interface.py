@@ -1,3 +1,4 @@
+import threading
 import time
 from tkinter import Button, Canvas, Frame, Label, Tk
 from game import NumberGame
@@ -13,6 +14,7 @@ class GameInterface:
         self.width = width
         self.height = height
         self.rendering = False
+        self.paused = False
         self.last_render_time = 0
         self.stage = []
  
@@ -32,16 +34,17 @@ class GameInterface:
         self.window.after(16, self.render)
         self.window.mainloop()
 
-    def render(self):
+    def render(self, force: bool = False):
         self.window.after(16, self.render)
-        if (not self.game or not self.game.started or self.rendering): return
-        if (time.time() - self.last_render_time) * 1000 < 16: return
+        if (not self.game or not self.game.started): return
+        if (not force and self.rendering): return
+        if (not force and time.time() - self.last_render_time) * 1000 < 16: return
 
-        self.rendering = True
+        if (not force): self.rendering = True
         self.canvas.delete("all")
         if self.tree: self.tree.render(self.canvas)
         self.last_render_time = time.time()
-        self.rendering = False
+        if (not force): self.rendering = False
     
     def clear_stage(self):
         for element in self.stage: element.destroy()
@@ -137,7 +140,9 @@ class GameInterface:
 
     def init_stage_4(self):
         self.clear_stage()  # Remove previous UI elements
-        if (self.game.get_current_player() == 2): self.apply_move(-1)
+        if (self.game.get_current_player() == 2):
+            threading.Thread(target=self.apply_move, daemon=True).start()
+            return
 
         # Get the current game state from self.game
         game_state = self.game.get_current_move()
@@ -224,24 +229,25 @@ class GameInterface:
 
     def on_key_press(self, event):
         if (not self.game or not self.game.started): return
+        if (event.keysym == "space"): self.paused = not self.paused
         self.tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
 
     def start_game(self, current_player: int, current_number: int, algorithm: str):
-        self.game = NumberGame()
+        self.game = NumberGame(self)
         self.game.set_algorithm(algorithm)
         self.game.start_game(current_player, current_number)
-        #self.game.root.generate_children(divisors=[2, 3, 4])
-        #self.game.current_move = self.game.current_move.children[-1]
         self.tree = TreeVizualizer(self.game.root)
         self.init_stage_4()
 
-    def apply_move(self, divisor):
+    def apply_move(self, divisor: int = -1):
+        self.window.after(0, self.clear_stage)
         current_player = self.game.get_current_player()
         if (current_player == 2): self.game.ai_next_move()
         if (current_player == 1): self.game.next_move(divisor)
+        while (self.rendering): time.sleep(0.0001)
         self.tree.set_selected(self.game.get_current_move())
-        if (not self.game.is_finished()): self.init_stage_4()
-        if (self.game.is_finished()): self.init_stage_5()
+        if (not self.game.is_finished()): self.window.after(0, self.init_stage_4)
+        if (self.game.is_finished()): self.window.after(0, self.init_stage_5)
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ class GameStateNode(TreeNode):
         super().__init__(str(self))
     
     def __str__(self):
-        return f'SCORE: {self.current_number}\nDIVISOR: {self.divisor_number}\nBANK: {self.bank_score}\nPLAYER SCORE: {self.player_1_score}\nCOMPUTER SCORE: {self.player_2_score}\n'
+        return f'SCORE: {self.current_number}\nDIVISOR: {self.divisor_number}\nBANK: {self.bank_score}\nCOMPUTER SCORE: {self.player_2_score}\nPLAYER SCORE: {self.player_1_score}\n'
 
     def get_fill_color(self):
         if self.is_selected(): return "#ffcc00"
@@ -60,11 +60,11 @@ class GameStateNode(TreeNode):
     
 
 class NumberGame:
-    def __init__(self):
+    def __init__(self, ui):
         """Initialize the game with a random valid starting number."""
         self.started = False
         self.finished = False
-        self.ai = GameAI(self)
+        self.ai = GameAI(ui, self)
 
     def generate_valid_numbers(count=5, lower=20000, upper=30000):
         """Generate a list of unique numbers divisible by 2, 3, and 4 within a range."""
@@ -87,6 +87,12 @@ class NumberGame:
         self.current_move.generate_children(divisors=[selected_number])
         self.current_move = self.current_move.children[0]
 
+    def set_next_move(self, selected_number):
+        if self.is_finished() or not self.started: return False
+        for child in self.current_move.children:
+            if child.divisor_number == selected_number: self.current_move = child
+        self.current_move.children = [] #TODO: Fix this, it is very broken, implement actuall method to remove children
+
     def get_current_move(self):
         return self.current_move
 
@@ -103,7 +109,7 @@ class NumberGame:
         current_move = self.current_move
         next_move = self.ai.next_move()
         self.current_move = current_move
-        self.next_move(next_move)
+        self.set_next_move(next_move)
     
     def is_finished(self):
         if self.finished: return True

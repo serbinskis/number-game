@@ -52,11 +52,10 @@ class GameStateNode(TreeNode):
 class NumberGame:
     def __init__(self):
         """Initialize the game with a random valid starting number."""
-        self.starting_numbers = self.generate_valid_numbers(count=5)
         self.started = False
         self.finished = False
 
-    def generate_valid_numbers(self, count=5, lower=20000, upper=30000):
+    def generate_valid_numbers(count=5, lower=20000, upper=30000):
         """Generate a list of unique numbers divisible by 2, 3, and 4 within a range."""
         numbers = set()
         while len(numbers) < count:
@@ -65,12 +64,9 @@ class NumberGame:
                 numbers.add(num)
         return list(numbers)
 
-    def get_starting_numbers(self):
-        return self.starting_numbers
-
     def start_game(self, current_player, current_number):
         if self.started: return False
-        self.root = GameStateNode(current_number, current_player, 0, 0, 0)
+        self.root = GameStateNode(current_number, 0, current_player, 0, 0, 0)
         self.current_move = self.root
         self.started = True
         return self.started
@@ -80,46 +76,15 @@ class NumberGame:
         self.current_move.generate_children(divisors=[selected_number])
         self.current_move = self.current_move.children[0]
     
+    def get_current_move(self):
+        return self.current_move
+
     def get_current_number(self):
         return self.current_move.current_number
     
     def is_finished(self):
         if self.finished: return True
-        num = self.getCurrentNumber()
+        num = self.get_current_number()
         if ((num > 10) and (num % 2 == 0 or num % 3 == 0 or num % 4 == 0)): return False
         self.finished = True
         return self.finished
-
-def on_key_press(event, tree: TreeVizualizer, canvas: Canvas):
-    tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
-    canvas.delete("all")  # Clear the canvas
-    tree.draw_selected(canvas)  # Redraw with the selected node highlighted
-
-if __name__ == '__main__':
-    tree = TreeVizualizer(GameStateNode(29952, 0, 1, 0, 0, 0))
-    tree.root.generate_children(divisors=[2,3,4], recursive=True)
-    tree.print_tree()
-    print(tree.find_max_depth())
-    tree.execute_on_depth(-1, lambda node: print(str(node)))
-    print("======================================")
-    node = tree.find_first_node_at_depth(depth=-1)
-    print(node.siblings_count)
-    print(node.next_sibling.siblings_count)
-
-    width = 1200
-    height = 600
-
-    top = Tk()
-    top.title("Ciparu Spēle")  # Set the title
-    top.resizable(False, False)  # Make it unresizable
-    top.geometry(f"{width}x{height}+{(top.winfo_screenwidth() - width)//2}+{(top.winfo_screenheight() - height)//2}")
-    canvas = Canvas(top, bg="white", height=height, width=width//2)
-    canvas.place(x=width//2, y=-1)
-    canvas.delete("all")
-
-    frame = Frame(top, width=4, height=height, bg="black")
-    frame.place(x=(width//2)-2, y=0)
-
-    top.bind("<KeyPress>", lambda event: on_key_press(event, tree, canvas))
-    tree.draw_selected(canvas)
-    top.mainloop()

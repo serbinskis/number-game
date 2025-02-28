@@ -1,3 +1,4 @@
+import copy
 import random
 from tkinter import *
 from typing import List, Optional, Callable, Sequence, cast
@@ -343,21 +344,13 @@ class TreeVizualizer:
   def __init__(self, root: "TreeNode"):
     self.root = root
     self.selected_node = root
+    self.current_center = copy.deepcopy(root.position)
+    self.target_center = self.current_center
 
-  def start(self):
-    pass
-    #Begin new thread and render tree each frame
-    #In new thread we create window and call fucntion which will
-    #Each node position and then render it
-
-  def stop(self):
-    pass
-
-  def update(self):
-    pass
-
-  def render(self):
-    pass
+  def render(self, canvas: Canvas):
+    self.current_center[0] = self.current_center[0] + (self.target_center[0] - self.current_center[0]) * 0.2
+    self.current_center[1] = self.current_center[1] + (self.target_center[1] - self.current_center[1]) * 0.2
+    self.draw_selected(canvas)
 
   def get_count(self) -> int:
     return self.root.get_count()
@@ -396,35 +389,43 @@ class TreeVizualizer:
           found_node = self.find_first_node_at_depth(depth, child)
           if found_node: return found_node
 
-  def draw(self, node: Optional["TreeNode"], center: Optional["TreeNode"], canvas: Canvas):
+  def draw(self, node: Optional["TreeNode"], canvas: Canvas):
     canvas_center_x = canvas.winfo_reqwidth() // 2
     canvas_center_y = canvas.winfo_reqheight() // 2
-    x_offset = canvas_center_x - (0 if not center else center.position[0])
-    y_offset = (0 if not center else canvas_center_y - center.position[1])
+    x_offset = canvas_center_x - self.current_center[0]
+    y_offset = canvas_center_y - self.current_center[1]
     node.draw_relatively(canvas, x_offset, y_offset)
 
-  def draw_depth(self, canvas: Canvas, center: Optional["TreeNode"] = None, depth: int = -1, depths: list = None):
-    if (depth > -1): self.execute_on_depth(depth, lambda node: self.draw(node, center, canvas))
+  def draw_depth(self, canvas: Canvas, depth: int = -1, depths: list = None):
+    if (depth > -1): self.execute_on_depth(depth, lambda node: self.draw(node, canvas))
     if (depth < 0 and (depths is None)): depths = [i for i in range(self.find_max_depth() + 1)]
-    for depth in depths: self.execute_on_depth(depth, lambda node: self.draw(node, center, canvas))
+    for depth in depths: self.execute_on_depth(depth, lambda node: self.draw(node, canvas))
 
-  def draw_selected(self, canvas, depth: int = -1, depths: list = None):
+  def draw_selected(self, canvas: Canvas, depth: int = -1, depths: list = None):
      self.selected_node.set_selected(True)
-     self.draw_depth(canvas, center=self.selected_node, depth=depth, depths=depths)
+     self.draw_depth(canvas, depth=depth, depths=depths)
      self.selected_node.set_selected(False)
 
+  def set_selected(self, node: "TreeNode"):
+     self.selected_node.image = None
+     self.selected_node = node
+     self.selected_node.image = None
+     self.set_center(node)
+
+  def set_center(self, node: "TreeNode"):
+     self.current_center = self.target_center
+     self.target_center = copy.deepcopy(node.position)
+
   def move_selected(self, direction: str):
-      self.selected_node.image = None
       if direction == "Up" and self.selected_node.parent:
-          self.selected_node = self.selected_node.parent
+          self.set_selected(self.selected_node.parent)
       elif direction == "Down" and self.selected_node.children:
-          self.selected_node = self.selected_node.children[len(self.selected_node.children) // 2]  # Move to first child
+          self.set_selected(self.selected_node.children[len(self.selected_node.children) // 2])  # Move to first child
       elif direction == "Left" and self.selected_node.prev_sibling:
-          self.selected_node = self.selected_node.prev_sibling
+          self.set_selected(self.selected_node.prev_sibling)
       elif direction == "Left" and self.selected_node.children:
-          self.selected_node = self.selected_node.children[0]
+          self.set_selected(self.selected_node.children[0])
       elif direction == "Right" and self.selected_node.next_sibling:
-          self.selected_node = self.selected_node.next_sibling
+          self.set_selected(self.selected_node.next_sibling)
       elif direction == "Right" and self.selected_node.children:
-          self.selected_node = self.selected_node.children[-1]
-      self.selected_node.image = None
+          self.set_selected(self.selected_node.children[-1])

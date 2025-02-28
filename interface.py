@@ -1,6 +1,7 @@
 import time
 from tkinter import Button, Canvas, Frame, Label, Tk
 from game import NumberGame
+from game_ai import GameAI
 from tree_visualizer import TreeVizualizer
 
 
@@ -122,15 +123,12 @@ class GameInterface:
         label.place(x=label_x, y=window_height // 4)
         self.stage.append(label)
 
-        # Available AI algorithms (example: Minimax, Random, etc.)
-        algorithms = ["Minimax", "Alpha-Beta Pruning", "Random"]
-
         button_width = 180
         button_height = 40
         button_spacing = 20
         start_y = (window_height // 2)
 
-        for i, algo in enumerate(algorithms):
+        for i, algo in enumerate(GameAI.algorithms.keys()):
             button = Button(self.window, text=algo, font=("Arial", 14), command=lambda a=algo: self.start_game(current_player, current_number, a))
             button_x = (window_width - button_width) // 2
             button_y = start_y + i * (button_height + button_spacing)
@@ -228,10 +226,12 @@ class GameInterface:
         if (not self.game or not self.game.started): return
         self.tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
 
-    def start_game(self, current_player, current_number, algorithm):
+    def start_game(self, current_player: int, current_number: int, algorithm: str):
         self.game = NumberGame()
         self.game.set_algorithm(algorithm)
         self.game.start_game(current_player, current_number)
+        #self.game.root.generate_children(divisors=[2, 3, 4])
+        #self.game.current_move = self.game.current_move.children[-1]
         self.tree = TreeVizualizer(self.game.root)
         self.init_stage_4()
 

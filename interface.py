@@ -103,7 +103,7 @@ class GameInterface:
         button_width = 140
         button_height = 40
         button_spacing = 20
-        start_y = (window_height // 2)
+        start_y = (window_height // 3)
 
         for i, (text, player) in enumerate([("Player", 1), ("Computer", 2)]):
             button = Button(self.window, text=text, font=("Arial", 14),  command=lambda p=player: self.init_stage_3(current_number, p))

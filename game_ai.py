@@ -43,7 +43,7 @@ class GameAI:
         current_move.generate_children()
         return random.choice(current_move.children).divisor_number if current_move.children else None
 
-    #TODO: Fix (I THINK ITS FIXED) -> https://prnt.sc/sbo5Y-FNTE_z
+    #TODO: (WHY MINIMAX IS SO STUPID) -> https://prnt.sc/5D096zfvliCf
     #TODO: Rewrite, this is tottaly inccorect: https://www.youtube.com/watch?v=l-hh51ncgDI
     def _minimax_algorithm(self) -> int:
         def _minimax_score(node: "TreeNode"):
@@ -54,7 +54,7 @@ class GameAI:
         def _minimax_helper(node: "TreeNode", depth: int, maximizingPlayer: bool) -> Tuple["TreeNode", int]:
             while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while renderinbuuy7gyg
             self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
-            time.sleep(0.5) # Sleep for some time, so that renderer in main thread visualizes tree
+            time.sleep(0.3) # Sleep for some time, so that renderer in main thread visualizes tree
             while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
 
             is_game_over = (node.current_number <= 10) or not any(node.current_number % d == 0 for d in [2, 3, 4])
@@ -96,7 +96,7 @@ class GameAI:
         def _maximax_helper(node: Optional["TreeNode"] = None, depth: int = 0) -> Tuple["TreeNode", int]:
             while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while renderinbuuy7gyg
             self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
-            time.sleep(0.300) # Sleep for some time, so that renderer in main thread visualizes tree
+            time.sleep(0.3) # Sleep for some time, so that renderer in main thread visualizes tree
             while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
 
             if (depth >= self.max_depth): return node, _maximax_score(node)

@@ -23,6 +23,9 @@ class GameStateNode(TreeNode):
         if self.current_player == 1: return "#ff0000" # The current_player, state of who is playing now
         return self.fill_color
 
+    def is_game_over(self) -> bool:
+        return (self.current_number <= 10) or not any(self.current_number % d == 0 for d in [2, 3, 4])
+
     def generate_children(self, divisors=[2, 3, 4], recursive=False):
         for divisor in divisors:
             if (self.current_number % divisor == 0):  # Ensure division results in an integer

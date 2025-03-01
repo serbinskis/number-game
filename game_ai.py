@@ -44,29 +44,26 @@ class GameAI:
         return random.choice(current_move.children).divisor_number if current_move.children else None
 
     #TODO: (WHY MINIMAX IS SO STUPID) -> https://prnt.sc/5D096zfvliCf
-    #TODO: Rewrite, this is tottaly inccorect: https://www.youtube.com/watch?v=l-hh51ncgDI
+    #TODO: (DONE) Rewrite, this is tottaly inccorect: https://www.youtube.com/watch?v=l-hh51ncgDI
     def _minimax_algorithm(self) -> int:
-        def _minimax_score(node: "TreeNode"):
-            is_game_over = (node.current_number <= 10) or not any(node.current_number % d == 0 for d in [2, 3, 4])
-            if (is_game_over and (node.current_player == 2)): return -sys.maxsize//2
+        def _minimax_score(node: "game.GameStateNode"):
+            if (node.is_game_over() and (node.current_player == 2)): return -sys.maxsize//2
             return node.player_2_score
 
-        def _minimax_helper(node: "TreeNode", depth: int, maximizingPlayer: bool) -> Tuple["TreeNode", int]:
-            while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while renderinbuuy7gyg
+        def _minimax_helper(node: "game.GameStateNode", depth: int, maximizingPlayer: bool) -> Tuple["TreeNode", int]:
+            while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while rendering ui
             self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
             time.sleep(0.3) # Sleep for some time, so that renderer in main thread visualizes tree
             while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
 
-            is_game_over = (node.current_number <= 10) or not any(node.current_number % d == 0 for d in [2, 3, 4])
-            if ((depth == 0) or is_game_over): return node, _minimax_score(node) 
-
+            if ((depth == 0) or node.is_game_over()): return node, _minimax_score(node) # If max depth reached, return score
             node.generate_children()  # Ensure children are created
             if (not node.children): return node, _minimax_score(node) # If no children, return score
-            
-            best_move = node.children[0] # Set callback to default node
-            best_score = -sys.maxsize if maximizingPlayer else sys.maxsize
 
-            if maximizingPlayer:
+            best_move = node.children[0] # Set callback to default node
+            best_score = -sys.maxsize if maximizingPlayer else sys.maxsize # We either compare to get max or min
+
+            if maximizingPlayer: # Max or min score between all node's children
                 for child in node.children:
                     eval_node, eval_score = _minimax_helper(child, depth - 1, False)
                     eval_node.add_extra_text(f" [HIT ({eval_score})]\n")
@@ -79,6 +76,12 @@ class GameAI:
                     if (eval_score < best_score): best_move = eval_node
                     best_score = min(eval_score, best_score)
 
+            # Don't return best_move, we need to return ourself, so that in the end we know which node leads to the best_move
+            # If we cary the best_move from the bottom to the up, we will not know which of the root's nodes was the original
+            # Since we replaced it with the best node from the bottom
+            # Only in the end return best_move, since it will be the root's children with the best move
+            # We don't want to return root, but one of it's children as the result
+
             best_move.add_extra_text(f"BEST")
             best_move = node if (depth != self.get_max_depth()) else best_move
             return best_move, best_score
@@ -88,13 +91,12 @@ class GameAI:
 
     #TODO: Fix (I THINK ITS FIXED) -> https://prnt.sc/sbo5Y-FNTE_z
     def _maximax_algorithm(self) -> int:
-        def _maximax_score(node: "TreeNode"):
-            is_game_over = (node.current_number <= 10) or not any(node.current_number % d == 0 for d in [2, 3, 4])
-            if (is_game_over and (node.current_player == 2)): return -sys.maxsize//2
+        def _maximax_score(node: "game.GameStateNode"):
+            if (node.is_game_over() and (node.current_player == 2)): return -sys.maxsize//2
             return node.player_2_score
 
-        def _maximax_helper(node: Optional["TreeNode"] = None, depth: int = 0) -> Tuple["TreeNode", int]:
-            while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while renderinbuuy7gyg
+        def _maximax_helper(node: Optional["game.GameStateNode"] = None, depth: int = 0) -> Tuple["game.GameStateNode", int]:
+            while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while rendering ui
             self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
             time.sleep(0.3) # Sleep for some time, so that renderer in main thread visualizes tree
             while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely

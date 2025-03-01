@@ -1,6 +1,7 @@
 # Dalīšanas Spēle
 
 Šī ir spēle diviem spēlētājiem, kurā viņi pēc kārtas dala skaitļus ar 2, 3 vai 4, ievērojot īpašus punktu noteikumus.
+<p align="center"><img src="https://i.imgur.com/UTlBz1l.png"/></p>
 
 ## Spēles noteikumi
 

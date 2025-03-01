@@ -74,8 +74,7 @@ class NumberGame:
         numbers = set()
         while len(numbers) < count:
             num = random.randint(lower, upper)
-            if (num % 2 == 0 and num % 3 == 0 and num % 4 == 0):
-                numbers.add(num)
+            if (num % 2 == 0 and num % 3 == 0 and num % 4 == 0): numbers.add(num)
         return list(numbers)
 
     def start_game(self, current_player, current_number):
@@ -96,13 +95,13 @@ class NumberGame:
             if child.divisor_number == selected_number: self.current_move = child
         self.current_move.remove_children()
 
-    def get_current_move(self):
+    def get_current_move(self) -> "GameStateNode":
         return self.current_move
 
-    def get_current_player(self):
+    def get_current_player(self) -> int:
         return self.get_current_move().current_player
 
-    def get_current_number(self):
+    def get_current_number(self) -> int:
         return self.get_current_move().current_number
     
     def set_algorithm(self, algorithm: str):
@@ -116,7 +115,6 @@ class NumberGame:
     
     def is_finished(self):
         if self.finished: return True
-        num = self.get_current_number()
-        if ((num > 10) and (num % 2 == 0 or num % 3 == 0 or num % 4 == 0)): return False
+        if (not self.get_current_move().is_game_over()): return False
         self.finished = True
         return self.finished

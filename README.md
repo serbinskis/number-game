@@ -7,7 +7,7 @@
 
 1. **Sākums**:
    - Spēle sākas ar vienu no pieciem nejauši ģenerētiem skaitļiem diapazonā no 20000 līdz 30000.
-   - Skaitlis tiek izvēlēts tā, lai tas dalītos ar 3, 2 un 4.
+   - Skaitlis tiek izvēlēts tā, lai tas dalītos ar 2, 3 un 4.
    - Spēlētājs izvēlas, ar kuru no pieciem skaitļiem sākt spēli.
 
 2. **Gājienu veikšana**:

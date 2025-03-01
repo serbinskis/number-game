@@ -5,18 +5,35 @@ from typing import Callable, Optional, Tuple
 import game as game
 
 class GameAI:
-    algorithms = { "Minimax": "_minimax_algorithm", "Alpha-Beta Pruning": "_alpha_beta_algorithm", "Maximax (Custom)": "_maximax_algorithm", "Random": "_random_algorithm" }
+    _algorithms = { "Minimax": "_minimax_algorithm", "Alpha-Beta Pruning": "_alpha_beta_algorithm", "Maximax (Custom)": "_maximax_algorithm", "Random": "_random_algorithm" }
+    _difficulties = { "Max": sys.maxsize, "Medium": 3, "Easy": 1 }
+    _display_intervals = { "Max": 0.05, "Medium": 0.3, "Easy": 0.5 }
 
     def __init__(self, ui, game: "game.NumberGame", algorithm: str = None):
         self.ui = ui
         self.game = game
         self.algorithm = algorithm
+        self.difficulty = "Medium"
         self.max_depth = 3
+        self.sleep_interval = 0.3
+
+    def get_algorithm(self) -> str:
+        return self.algorithm
+
+    def get_difficulty(self) -> str:
+        return self.difficulty
     
     def set_algorithm(self, algorithm: str):
         """Sets the AI algorithm to use."""
-        if algorithm not in self.algorithms: raise ValueError(f"Invalid algorithm choice: {algorithm}")
+        if algorithm not in self._algorithms: raise ValueError(f"Invalid algorithm choice: {algorithm}")
         self.algorithm = algorithm
+
+    def set_difficulty(self, difficulty: str):
+        """Sets the AI difficulty to use."""
+        if difficulty not in self._difficulties: raise ValueError(f"Invalid difficulty choice: {difficulty}")
+        self.difficulty = difficulty
+        self.set_max_depth(self._difficulties[difficulty])
+        self.sleep_interval = self._display_intervals[difficulty]
 
     def set_tree(self):
         self.tree = self
@@ -31,8 +48,8 @@ class GameAI:
 
     def next_move(self) -> int:
         """Determines the next move based on the selected algorithm."""
-        if self.algorithm not in self.algorithms: raise ValueError(f"Unknown algorithm: {self.algorithm}")
-        method_name = self.algorithms[self.algorithm]
+        if self.algorithm not in self._algorithms: raise ValueError(f"Unknown algorithm: {self.algorithm}")
+        method_name = self._algorithms[self.algorithm]
         return getattr(self, method_name)()
 
     def _random_algorithm(self):
@@ -59,7 +76,7 @@ class GameAI:
     def _minimax_helper(self, node: "game.GameStateNode", depth: int, alpha: Optional[int] = None, beta: Optional[int] = None, maximizing: bool = True, always_maximizing: bool = False, score_callback: Callable[["game.GameStateNode"], None] = None) -> Tuple["game.GameStateNode", int]:
         while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while rendering ui
         self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
-        time.sleep(0.3) # Sleep for some time, so that renderer in main thread visualizes tree
+        time.sleep(self.sleep_interval) # Sleep for some time, so that renderer in main thread visualizes tree
         while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
 
         if ((depth == 0) or node.is_game_over()): return node, score_callback(node) # If max depth reached, return score

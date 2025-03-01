@@ -106,6 +106,9 @@ class NumberGame:
     
     def set_algorithm(self, algorithm: str):
         self.ai.set_algorithm(algorithm)
+
+    def set_difficulty(self, difficulty: str):
+        self.ai.set_difficulty(difficulty)
     
     def ai_next_move(self):
         current_move = self.current_move

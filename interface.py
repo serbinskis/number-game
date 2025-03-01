@@ -29,7 +29,7 @@ class GameInterface:
         frame = Frame(self.window, width=4, height=self.height, bg="black")
         frame.place(x=(self.width//2)-2, y=0)
 
-        self.init_stage_1()
+        self.init_stage_choose_number()
         self.window.bind("<KeyPress>", lambda event: self.on_key_press(event))
         self.window.after(16, self.render)
         self.window.mainloop()
@@ -53,7 +53,7 @@ class GameInterface:
         self.stage.append(label) # Store the label in the stage list so it can be removed later
 
     # Let user select generated number
-    def init_stage_1(self):
+    def init_stage_choose_number(self):
         self.clear_stage()
 
         # Get window dimensions
@@ -79,13 +79,13 @@ class GameInterface:
 
         # Create buttons dynamically
         for i, num in enumerate(start_numbers):
-            button = Button(self.window, text=str(num), font=("Arial", 12), command=lambda n=num: self.init_stage_2(n))
+            button = Button(self.window, text=str(num), font=("Arial", 12), command=lambda n=num: self.init_stage_choose_who_starts(n))
             button_x = (window_width - button_width) // 2  # Center horizontally
             button_y = start_y + i * (button_height + button_spacing)  # Position with spacing
             button.place(x=button_x, y=button_y, width=button_width, height=button_height)
             self.stage.append(button)
     
-    def init_stage_2(self, current_number):
+    def init_stage_choose_who_starts(self, current_number):
         self.clear_stage()  # Remove previous UI elements
 
         # Get window dimensions
@@ -106,13 +106,13 @@ class GameInterface:
         start_y = (window_height // 3)
 
         for i, (text, player) in enumerate([("Player", 1), ("Computer", 2)]):
-            button = Button(self.window, text=text, font=("Arial", 14),  command=lambda p=player: self.init_stage_3(current_number, p))
+            button = Button(self.window, text=text, font=("Arial", 14),  command=lambda p=player: self.init_stage_choose_algorithm(current_number, p))
             button_x = (window_width - button_width) // 2
             button_y = start_y + i * (button_height + button_spacing)
             button.place(x=button_x, y=button_y, width=button_width, height=button_height)
             self.stage.append(button)
 
-    def init_stage_3(self, current_number, current_player):
+    def init_stage_choose_algorithm(self, current_number, current_player):
         self.clear_stage()  # Remove previous UI elements
 
         # Get window dimensions
@@ -131,14 +131,38 @@ class GameInterface:
         button_spacing = 20
         start_y = (window_height // 3)
 
-        for i, algo in enumerate(GameAI.algorithms.keys()):
-            button = Button(self.window, text=algo, font=("Arial", 14), command=lambda a=algo: self.start_game(current_player, current_number, a))
+        for i, algo in enumerate(GameAI._algorithms.keys()):
+            button = Button(self.window, text=algo, font=("Arial", 14), command=lambda a=algo: self.init_stage_choose_difficulty(current_number, current_player, a))
             button_x = (window_width - button_width) // 2
             button_y = start_y + i * (button_height + button_spacing)
             button.place(x=button_x, y=button_y, width=button_width, height=button_height)
             self.stage.append(button)
 
-    def init_stage_4(self):
+    def init_stage_choose_difficulty(self, current_number, current_player, algorithm):
+        self.clear_stage()  # Remove previous UI elements
+
+        window_width = self.width // 2
+        window_height = self.height
+
+        label = Label(self.window, text="Choose Difficulty:", font=("Arial", 14))
+        label.update_idletasks()
+        label_x = (window_width - label.winfo_reqwidth()) // 2
+        label.place(x=label_x, y=window_height // 4)
+        self.stage.append(label)
+
+        button_width = 180
+        button_height = 40
+        button_spacing = 20
+        start_y = (window_height // 3)
+
+        for i, difficulty in enumerate(GameAI._difficulties.keys()):
+            button = Button(self.window, text=difficulty, font=("Arial", 14), command=lambda d=difficulty: self.start_game(current_player, current_number, algorithm, d))
+            button_x = (window_width - button_width) // 2
+            button_y = start_y + i * (button_height + button_spacing)
+            button.place(x=button_x, y=button_y, width=button_width, height=button_height)
+            self.stage.append(button)
+
+    def init_stage_make_move(self):
         self.clear_stage()  # Remove previous UI elements
         if (self.game.get_current_player() == 2):
             threading.Thread(target=self.apply_move, daemon=True).start()
@@ -155,22 +179,24 @@ class GameInterface:
         label_bank = Label(self.window, text=f"Bank Score: {game_state.bank_score}", font=("Arial", 14))
         label_p1 = Label(self.window, text=f"Player Score {game_state.player_1_score}", font=("Arial", 14))
         label_p2 = Label(self.window, text=f"Computer Score: {game_state.player_2_score}", font=("Arial", 14))
-        label_algorithm = Label(self.window, text=f"Algorithm: {self.game.ai.algorithm}", font=("Arial", 14))
+        label_algorithm = Label(self.window, text=f"Algorithm: {self.game.ai.get_algorithm()}", font=("Arial", 14))
+        label_difficulty = Label(self.window, text=f"Difficulty: {self.game.ai.get_difficulty()}", font=("Arial", 14))
 
         # Place labels
         label_bank.place(x=20, y=20)
         label_p1.place(x=20, y=60)
         label_p2.place(x=20, y=100)
         label_algorithm.place(x=20, y=140)
+        label_difficulty.place(x=20, y=180)
 
         # Store UI elements for later removal
-        self.stage.extend([label_p1, label_p2, label_bank, label_algorithm])
+        self.stage.extend([label_p1, label_p2, label_bank, label_algorithm, label_difficulty])
 
         # Display the Current Number
         label_number = Label(self.window, text=f"Current Number: {game_state.current_number}", font=("Arial", 16, "bold"))
         label_number.update_idletasks()
         label_x = (window_width - label_number.winfo_reqwidth()) // 2
-        label_number.place(x=label_x, y=window_height // 3)
+        label_number.place(x=label_x, y=window_height // 2.5)
         self.stage.append(label_number)
 
         # Create buttons for dividing by 2, 3, 4
@@ -187,7 +213,7 @@ class GameInterface:
             button.place(x=button_x, y=button_y, width=button_width, height=button_height)
             self.stage.append(button)
     
-    def init_stage_5(self):
+    def init_stage_game_over(self):
         self.clear_stage()  # Remove previous UI elements
 
         # Get the final game state
@@ -221,7 +247,7 @@ class GameInterface:
         self.stage.append(label_scores)
 
         # Restart Button
-        button_restart = Button(self.window, text="Restart", font=("Arial", 14), command=self.init_stage_1)
+        button_restart = Button(self.window, text="Restart", font=("Arial", 14), command=self.init_stage_choose_number)
         button_x = (window_width - 120) // 2
         button_y = window_height - 100
         button_restart.place(x=button_x, y=button_y, width=120, height=40)
@@ -234,12 +260,13 @@ class GameInterface:
         #if (event.keysym == "BackSpace"): self.tree.selected_node.remove_children()
         self.tree.move_selected(event.keysym)  # Move the selected node based on the arrow key
 
-    def start_game(self, current_player: int, current_number: int, algorithm: str):
+    def start_game(self, current_player: int, current_number: int, algorithm: str, difficulty: str):
         self.game = NumberGame(self)
         self.game.set_algorithm(algorithm)
+        self.game.set_difficulty(difficulty)
         self.game.start_game(current_player, current_number)
         self.tree = TreeVizualizer(self.game.root)
-        self.init_stage_4()
+        self.init_stage_make_move()
 
     def apply_move(self, divisor: int = -1):
         self.window.after(0, self.clear_stage)
@@ -248,8 +275,8 @@ class GameInterface:
         if (current_player == 1): self.game.next_move(divisor)
         while (self.rendering): time.sleep(0.0001)
         self.tree.set_selected(self.game.get_current_move())
-        if (not self.game.is_finished()): self.window.after(0, self.init_stage_4)
-        if (self.game.is_finished()): self.window.after(0, self.init_stage_5)
+        if (not self.game.is_finished()): self.window.after(0, self.init_stage_make_move)
+        if (self.game.is_finished()): self.window.after(0, self.init_stage_game_over)
 
 
 if __name__ == '__main__':

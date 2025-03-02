@@ -277,7 +277,3 @@ class GameInterface:
         self.tree.set_selected(self.game.get_current_move())
         if (not self.game.is_finished()): self.window.after(0, self.init_stage_make_move)
         if (self.game.is_finished()): self.window.after(0, self.init_stage_game_over)
-
-
-if __name__ == '__main__':
-    GameInterface(1200, 600).start()

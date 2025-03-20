@@ -58,7 +58,6 @@ class GameAI:
         current_move.generate_children()
         return random.choice(current_move.children).divisor_number if current_move.children else None
 
-    #TODO: (WHY MINIMAX IS SO STUPID) -> https://prnt.sc/5D096zfvliCf
     #TODO: (DONE) Rewrite, this is tottaly inccorect: https://www.youtube.com/watch?v=l-hh51ncgDI
     def _minimax_algorithm(self) -> int:
         score_callback = game.GameStateNode.heuristic_score

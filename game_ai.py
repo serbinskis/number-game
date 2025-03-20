@@ -89,7 +89,7 @@ class GameAI:
         if (maximizing or always_maximizing): # Max or min score between all node's children
             for child in node.children:
                 eval_node, eval_score = self._minimax_helper(child, depth - 1, alpha=alpha, beta=beta, maximizing=False, always_maximizing=always_maximizing, score_callback=score_callback)
-                eval_node.add_extra_text(f" [HIT ({eval_score})]\n")
+                eval_node.add_extra_text(f" [EVAL ({eval_score})]\n")
                 if (eval_score > best_score): best_move = eval_node
                 best_score = max(eval_score, best_score)
                 if ((beta is not None) and (alpha is not None)): alpha = max(alpha, eval_score)
@@ -97,7 +97,7 @@ class GameAI:
         else:
             for child in node.children:
                 eval_node, eval_score = self._minimax_helper(child, depth - 1, alpha=alpha, beta=beta, maximizing=True, always_maximizing=always_maximizing, score_callback=score_callback)
-                eval_node.add_extra_text(f" [HIT ({eval_score})]\n")
+                eval_node.add_extra_text(f" [EVAL ({eval_score})]\n")
                 if (eval_score < best_score): best_move = eval_node
                 best_score = min(eval_score, best_score)
                 if ((beta is not None) and (alpha is not None)): beta = min(beta, eval_score)

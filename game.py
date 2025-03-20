@@ -25,6 +25,9 @@ class GameStateNode(TreeNode):
 
     def is_game_over(self) -> bool:
         return (self.current_number <= 10) or not any(self.current_number % d == 0 for d in [2, 3, 4])
+    
+    def heuristic_score(self) -> int:
+        return self.player_2_score - self.player_1_score
 
     def generate_children(self, divisors=[2, 3, 4], recursive=False):
         for divisor in divisors:

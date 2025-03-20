@@ -61,16 +61,16 @@ class GameAI:
     #TODO: (WHY MINIMAX IS SO STUPID) -> https://prnt.sc/5D096zfvliCf
     #TODO: (DONE) Rewrite, this is tottaly inccorect: https://www.youtube.com/watch?v=l-hh51ncgDI
     def _minimax_algorithm(self) -> int:
-        score_callback = lambda node: -sys.maxsize // 2 if (node.is_game_over() and node.current_player == 2) else node.player_2_score
+        score_callback = game.GameStateNode.heuristic_score
         return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), score_callback=score_callback)[0].divisor_number
 
     #TODO: Fix (I THINK ITS FIXED) -> https://prnt.sc/sbo5Y-FNTE_z
     def _maximax_algorithm(self) -> int:
-        score_callback = lambda node: -sys.maxsize // 2 if (node.is_game_over() and node.current_player == 2) else node.player_2_score
+        score_callback = game.GameStateNode.heuristic_score
         return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), always_maximizing=True, score_callback=score_callback)[0].divisor_number
 
     def _alpha_beta_algorithm(self):
-        score_callback = lambda node: -sys.maxsize // 2 if (node.is_game_over() and node.current_player == 2) else node.player_2_score
+        score_callback = game.GameStateNode.heuristic_score
         return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), alpha=-sys.maxsize, beta=sys.maxsize, score_callback=score_callback)[0].divisor_number
 
     def _minimax_helper(self, node: "game.GameStateNode", depth: int, alpha: Optional[int] = None, beta: Optional[int] = None, maximizing: bool = True, always_maximizing: bool = False, score_callback: Callable[["game.GameStateNode"], None] = None) -> Tuple["game.GameStateNode", int]:

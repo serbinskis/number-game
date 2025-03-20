@@ -110,5 +110,6 @@ class GameAI:
         # We don't want to return root, but one of it's children as the result
 
         best_move.add_extra_text(f"BEST")
-        best_move = node if (depth != self.get_max_depth()) else best_move
+        if (depth != self.get_max_depth()): best_move = node
+        #best_move = node if (depth != self.get_max_depth()) else best_move
         return best_move, best_score

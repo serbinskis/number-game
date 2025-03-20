@@ -196,7 +196,7 @@ class TreeNode:
     self.outline_color = f"#{random.randint(0, 0xFFFFFF):06x}"
     self.fill_color = "#ffffff"
     self.selected = False # Should we highlight node
-    self.__update_dimensions() # Update width and height
+    self._update_dimensions() # Update width and height
     self.max_height: int = self.height # Max text height for this depth
     self.position: List[int] = [0, (self.height // 2) + self._shared_marging_height]  # (x, y) based on depth and order
     self.depth: int = 0 if parent is None else parent.depth + 1  # Node depth
@@ -207,9 +207,9 @@ class TreeNode:
     self.image = None
     child_node.depth = self.depth + 1
     self.children.append(child_node)
-    child_node.__update_siblings()
-    child_node.__update_siblings_count()
-    child_node.__update_position()
+    child_node._update_siblings()
+    child_node._update_siblings_count()
+    child_node._update_position()
   
   def remove_children(self):
     for children in self.children: children.remove_children()
@@ -218,8 +218,8 @@ class TreeNode:
         if child.next_sibling: child.next_sibling.prev_sibling = child.prev_sibling
         if child.prev_sibling: child.prev_sibling.next_sibling = child.next_sibling
         sibling = child.next_sibling or child.prev_sibling
-        if (sibling): sibling.__update_siblings_count()
-        if (sibling): sibling.__update_position()
+        if (sibling): sibling._update_siblings_count()
+        if (sibling): sibling._update_position()
 
     self.children = []
   
@@ -258,7 +258,7 @@ class TreeNode:
     canvas.create_line(x0, y0, x1, y1, fill=outline, width=2)
 
   def draw_on_position(self, canvas: Canvas, x: int, y: int):
-    if (self.width == -1 or self.height == -1): self.__update_dimensions()
+    if (self.width == -1 or self.height == -1): self._update_dimensions()
     if (x + self.width < 0 or x > canvas.winfo_reqwidth() or y + self.height < 0 or y > canvas.winfo_reqheight()): return
     if (not self.image):
       outline = "black" if not self.parent else self.parent.outline_color
@@ -273,40 +273,40 @@ class TreeNode:
     self.draw_on_position(canvas, self.position[0] - (self.width // 2) + x, self.position[1] - (self.height // 2) + y)
     if (self.parent): self.draw_link(canvas, self.parent, x, y)
 
-  def __update_siblings(self):
+  def _update_siblings(self):
     if (self.parent == None): return # Root cannot have siblings
 
     # https://prnt.sc/F2tMDN83T5Cs #New node is always added at the end of the list
     if (len(self.parent.children)-1 > 0):
-      self.__assign_siblings(self.parent.children[-2], "prev_sibling")
+      self._assign_siblings(self.parent.children[-2], "prev_sibling")
 
     # https://prnt.sc/41AIQX4O3v4M
     # We either found parent with children or there was no children, meaning that the node is first in this depth
     if ((self.prev_sibling == None) and (self.parent.prev_sibling != None)):
-      parent_prev_sibling = self.__find_sibling_with_children(self.parent.prev_sibling, "prev_sibling")
-      if (parent_prev_sibling != None) > 0: self.__assign_siblings(parent_prev_sibling.children[-1], "prev_sibling")
+      parent_prev_sibling = self._find_sibling_with_children(self.parent.prev_sibling, "prev_sibling")
+      if (parent_prev_sibling != None) > 0: self._assign_siblings(parent_prev_sibling.children[-1], "prev_sibling")
 
     # https://prnt.sc/FX3H9m-x9l6u
     if ((self.next_sibling == None) and (self.parent.next_sibling != None)):
-      parent_next_sibling = self.__find_sibling_with_children(self.parent.next_sibling, "next_sibling")
-      if (parent_next_sibling != None): self.__assign_siblings(parent_next_sibling.children[0], "next_sibling")
+      parent_next_sibling = self._find_sibling_with_children(self.parent.next_sibling, "next_sibling")
+      if (parent_next_sibling != None): self._assign_siblings(parent_next_sibling.children[0], "next_sibling")
 
-  def __find_sibling_with_children(self, parent: "TreeNode", direction: str) -> Optional["TreeNode"]:
+  def _find_sibling_with_children(self, parent: "TreeNode", direction: str) -> Optional["TreeNode"]:
     while (parent and not parent.children): parent = getattr(parent, direction, None)
     return parent if (parent and parent.children) else None
 
-  def __assign_siblings(self,  sibling: "TreeNode", direction: str) -> "TreeNode":
+  def _assign_siblings(self,  sibling: "TreeNode", direction: str) -> "TreeNode":
     setattr(self, direction, sibling)
     setattr(sibling, ("prev_sibling" if direction == "next_sibling" else "next_sibling"), self)
 
-  def __update_siblings_count(self):
+  def _update_siblings_count(self):
     # Update our siblings_count from sibling, if no siblings found then default count to 1
     ref_sibling = self.prev_sibling or self.next_sibling
     self.siblings_count = (ref_sibling.siblings_count + 1) if ref_sibling else 1
-    self.__execute_on_siblings(lambda node: setattr(node, 'siblings_count', self.siblings_count))
+    self._execute_on_siblings(lambda node: setattr(node, 'siblings_count', self.siblings_count))
 
 # https://prnt.sc/uitUZvEqKlqt
-  def __update_dimensions(self):
+  def _update_dimensions(self):
     lines = self.text.split("\n")
     self.height = 20
 
@@ -315,15 +315,15 @@ class TreeNode:
       self.width = max(self.width, bbox[2] - bbox[0] + 20)
       self.height += (bbox[3] - bbox[1] + 5)
 
-  def __update_position(self):
+  def _update_position(self):
     self.total_width = self.width + ((self.siblings_count-1) * self._shared_marging_width) # Add ourself width and width for gaps between siblings
-    self.total_width = self.__acumulate_on_siblings(self.total_width, lambda acumulator, node: acumulator + node.width) # Sum all other sibling's width
-    self.max_height = self.__acumulate_on_siblings(self.height, lambda acumulator, node: max(acumulator, node.height))
-    self.__execute_on_siblings(lambda node: setattr(node, 'total_width', self.total_width)) # Set other sibling's total_width
-    self.__execute_on_siblings(lambda node: setattr(node, 'max_height', self.max_height)) # Set other sibling's max_height
+    self.total_width = self._acumulate_on_siblings(self.total_width, lambda acumulator, node: acumulator + node.width) # Sum all other sibling's width
+    self.max_height = self._acumulate_on_siblings(self.height, lambda acumulator, node: max(acumulator, node.height))
+    self._execute_on_siblings(lambda node: setattr(node, 'total_width', self.total_width)) # Set other sibling's total_width
+    self._execute_on_siblings(lambda node: setattr(node, 'max_height', self.max_height)) # Set other sibling's max_height
 
     position_y = self.parent.position[1] + (self.parent.max_height // 2) + (self._shared_marging_height) + (self.max_height // 2) # All nodes on same depth share same y position, which is center of max_height
-    sibling = self.__get_first_sibling()
+    sibling = self._get_first_sibling()
     sibling.position[0] = (self.width // 2) - (self.total_width // 2)
 
     while (sibling):
@@ -332,7 +332,7 @@ class TreeNode:
        if (sibling.prev_sibling and (sibling.prev_sibling.parent != sibling.parent)): sibling.position[0] += self._shared_marging_width * 2
        sibling = sibling.next_sibling
 
-  def __execute_on_siblings(self, callback: Callable[["TreeNode"], None] = None):
+  def _execute_on_siblings(self, callback: Callable[["TreeNode"], None] = None):
     # Update all siglings to left with callback
     prev_node = self.prev_sibling
     while prev_node:
@@ -345,12 +345,12 @@ class TreeNode:
         callback(next_node)
         next_node = next_node.next_sibling
 
-  def __acumulate_on_siblings(self, acumulator: int, callback: Callable[[int, "TreeNode"], None] = None) -> int:
+  def _acumulate_on_siblings(self, acumulator: int, callback: Callable[[int, "TreeNode"], None] = None) -> int:
      _acumulator = { 'value': acumulator }
-     self.__execute_on_siblings(lambda node: _acumulator.update({'value': callback(_acumulator['value'], node)}))
+     self._execute_on_siblings(lambda node: _acumulator.update({'value': callback(_acumulator['value'], node)}))
      return _acumulator['value']
 
-  def __get_first_sibling(self):
+  def _get_first_sibling(self):
       prev_node = self
       while prev_node.prev_sibling: prev_node = prev_node.prev_sibling
       return prev_node

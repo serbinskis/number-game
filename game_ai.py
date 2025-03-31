@@ -5,7 +5,7 @@ from typing import Callable, Optional, Tuple
 import game as game
 
 class GameAI:
-    _algorithms = { "Minimax": "_minimax_algorithm", "Alpha-Beta Pruning": "_alpha_beta_algorithm", "Maximax (Custom)": "_maximax_algorithm", "Random": "_random_algorithm" }
+    _algorithms = { "Minimax": "_minimax_algorithm", "Alpha-Beta Pruning": "_alpha_beta_algorithm" }
     _difficulties = { "Max": sys.maxsize, "Medium": 3, "Easy": 1 }
     _display_intervals = { "Max": 0.05, "Medium": 0.3, "Easy": 0.5 }
 
@@ -16,6 +16,8 @@ class GameAI:
         self.difficulty = "Medium"
         self.max_depth = 3
         self.sleep_interval = 0.3
+        self.last_move_time = 0.0  # Time taken for the last move
+        self.last_move_delta_time = 0.0 # Time used for animation and sleep intervals
 
     def get_algorithm(self) -> str:
         return self.algorithm
@@ -49,8 +51,16 @@ class GameAI:
     def next_move(self) -> int:
         """Determines the next move based on the selected algorithm."""
         if self.algorithm not in self._algorithms: raise ValueError(f"Unknown algorithm: {self.algorithm}")
-        method_name = self._algorithms[self.algorithm]
-        return getattr(self, method_name)()
+        self.last_move_delta_time = 0  # Clear wasted time timer
+        self.last_move_time = time.time() # Yeah, little bit confusing, but I don't want to use more variables anmes
+        move = getattr(self, self._algorithms[self.algorithm])() # Execute function based on choosen algorithm
+        self.last_move_time = max(time.time() - self.last_move_time, 0.001) # This time also counts wasted time, such as waiting and rendering
+        self.last_move_delta_time = max(self.last_move_time - self.last_move_delta_time, 0.001) # In this context delta time is wasted time, we convert it to total 99% used time
+
+        current_number = self.game.get_current_number()
+        next_number = current_number // move if move != 0 else 0
+        print(f"AI move | Algorithm: {self.algorithm} | Time: {self.last_move_delta_time:.3f}s | Operation: {current_number} / {move} = {next_number}")
+        return move
 
     def _random_algorithm(self):
         """Randomly selects a valid divisor (2, 3, or 4)."""
@@ -63,20 +73,17 @@ class GameAI:
         score_callback = game.GameStateNode.heuristic_score
         return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), score_callback=score_callback)[0].divisor_number
 
-    #TODO: Fix (I THINK ITS FIXED) -> https://prnt.sc/sbo5Y-FNTE_z
-    def _maximax_algorithm(self) -> int:
-        score_callback = game.GameStateNode.heuristic_score
-        return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), always_maximizing=True, score_callback=score_callback)[0].divisor_number
-
     def _alpha_beta_algorithm(self):
         score_callback = game.GameStateNode.heuristic_score
         return self._minimax_helper(self.game.get_current_move(), self.get_max_depth(), alpha=-sys.maxsize, beta=sys.maxsize, score_callback=score_callback)[0].divisor_number
 
     def _minimax_helper(self, node: "game.GameStateNode", depth: int, alpha: Optional[int] = None, beta: Optional[int] = None, maximizing: bool = True, always_maximizing: bool = False, score_callback: Callable[["game.GameStateNode"], None] = None) -> Tuple["game.GameStateNode", int]:
+        start_time = time.time() # Save current time to later calculate wasted time on sleeping and waiting
         while (self.ui.rendering): time.sleep(0.0001) # Don't modify selected node while rendering ui
         self.ui.tree.set_selected(node) # Set selected node for algorithm vizulaization
         time.sleep(self.sleep_interval) # Sleep for some time, so that renderer in main thread visualizes tree
         while (self.ui.paused): time.sleep(0.0001) # If paused wait infinitely
+        self.last_move_delta_time += time.time() - start_time # Count wasted time
 
         if ((depth == 0) or node.is_game_over()): return node, score_callback(node) # If max depth reached, return score
         node.generate_children()  # Ensure children are created

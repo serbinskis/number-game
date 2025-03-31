@@ -52,7 +52,6 @@ class GameInterface:
         label.place(x=20, y=self.height - 40)  # Position it near the bottom of the window
         self.stage.append(label) # Store the label in the stage list so it can be removed later
 
-    # Let user select generated number
     def init_stage_choose_number(self):
         self.clear_stage()
 
@@ -176,8 +175,16 @@ class GameInterface:
         window_height = self.height
 
         # Create labels for Player 1, Player 2, and Bank Score
+        if self.game.ai.last_move_time != 0:
+            info_label1 = Label(self.window, text=f"INFO: Algorithm Time: {self.game.ai.last_move_delta_time:.3f}s | Real Time: {self.game.ai.last_move_time:.3f}s", font=("Arial", 12, "bold"), fg="blue")
+            info_label1.place(x=20, y=self.height - 90)
+            self.stage.append(info_label1)
+            info_label1 = Label(self.window, text=f"INFO: Algorithm Operation: {self.game.get_current_move().parent.current_number} / {self.game.get_current_move().divisor_number} = {self.game.get_current_move().current_number}", font=("Arial", 12, "bold"), fg="blue")
+            info_label1.place(x=20, y=self.height - 65)
+            self.stage.append(info_label1)
+
         label_bank = Label(self.window, text=f"Bank Score: {game_state.bank_score}", font=("Arial", 14))
-        label_p1 = Label(self.window, text=f"Player Score {game_state.player_1_score}", font=("Arial", 14))
+        label_p1 = Label(self.window, text=f"Player Score: {game_state.player_1_score}", font=("Arial", 14))
         label_p2 = Label(self.window, text=f"Computer Score: {game_state.player_2_score}", font=("Arial", 14))
         label_algorithm = Label(self.window, text=f"Algorithm: {self.game.ai.get_algorithm()}", font=("Arial", 14))
         label_difficulty = Label(self.window, text=f"Difficulty: {self.game.ai.get_difficulty()}", font=("Arial", 14))
